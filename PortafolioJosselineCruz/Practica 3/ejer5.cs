@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace Practica_3
 {
@@ -15,40 +16,84 @@ namespace Practica_3
         public ejer5()
         {
             InitializeComponent();
+
+        }
+
+        private void txtNombre_Validating(object sender, CancelEventArgs e)
+        {
+            string nombre = @"^(([A-Z[ÁÉÍÓÚ][a-zñ[áéíóú]{2,})(\s)?)*[^\s]$";
+            if (!Regex.IsMatch(txtNombre.Text, nombre))
+            {
+                e.Cancel = true;
+                txtNombre.SelectAll();
+                errorProvider1.SetError(txtNombre, "El nombre ingresado no es valido...\nCada nombre ingresado debe iniciar en mayusculas...");
+            }
+
+        }
+        private void txtNombre_Validated(object sender, EventArgs e)
+        {
+            errorProvider1.Clear();
+        }
+        private void txtHoras_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsDigit(e.KeyChar))
+            {
+                e.Handled = false;
+            }
+            else if (char.IsLetter(e.KeyChar) || char.IsPunctuation(e.KeyChar) || char.IsSymbol(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+        }
+        private void txtHoras_Validating(object sender, CancelEventArgs e)
+        {
+            if (txtHoras.Text == "")
+            {
+                e.Cancel = true;
+                txtHoras.Focus();
+                errorProvider1.SetError(txtHoras, "La cantidad de horas es un campo obligatorio...\nIngrese la cantidad de horas...");
+            }
+        }
+        private void txtHoras_Validated(object sender, EventArgs e)
+        {
+            errorProvider1.Clear();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            try
+            string nombre = txtNombre.Text;
+            int horas;
+            double precio, subtotal, total = 0, impuesto, tn = 0;
+
+
+            if (nombre != string.Empty && int.TryParse(txtHoras.Text, out horas) && double.TryParse(txtValorhora.Text, out precio))
             {
-                string nombre = txtnombre.Text;
-                int horas;
-                double valorhora, subtotal, impuesto, total;
-                horas = Convert.ToInt32(txthoras.Text);
-                valorhora = Convert.ToDouble(txtvalor.Text);
-                subtotal = horas * valorhora;
-                impuesto = subtotal * 0.13;
+                subtotal = horas * precio;
+                impuesto = (subtotal * 0.10);
                 total = subtotal - impuesto;
-                dgvplanilla.Rows.Add(nombre, horas, valorhora, subtotal, impuesto, total);
-                dgvplanilla.ClearSelection();
-                lblsubtotal.HeaderText = "Subtotal=$" + subtotal.ToString("N2");
-                lblimpuesto.HeaderText = "Impuesto=$" + impuesto.ToString("N2");
-                lbltotal.HeaderText = "Total=$" + total.ToString("N2");
+
+                dataGridView1.Rows.Add(nombre, horas, precio, subtotal, impuesto, total);
 
             }
-            catch (Exception)
+            double suma = 0.0;
+            for (int i = 0; i < dataGridView1.Rows.Count; i++)
             {
-                MessageBox.Show("Ingrese los datos,Todos los campos son obligatorios");
-
+                suma = suma + Convert.ToDouble(dataGridView1.Rows[i].Cells[5].Value);
             }
+
+
+            lblTotalplanilla.Text = suma.ToString();
 
         }
 
         private void btnlimpiar_Click(object sender, EventArgs e)
         {
-            txtnombre.Clear();
-            txtvalor.Clear();
-            txthoras.Clear();
+            txtNombre.Clear();
+            txtValorhora.Clear();
+            txtHoras.Clear();
         }
+
+       
     }
 }
